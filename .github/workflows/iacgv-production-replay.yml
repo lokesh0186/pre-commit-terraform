@@ -1,0 +1,31 @@
+name: Verify remaining published IaC-Guard-V 1.0.4 evidence
+on:
+  push:
+    branches: [verification/iacgv-1.0.4-production]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: iacgv-public-production-replay
+  cancel-in-progress: false
+jobs:
+  public-replay:
+    if: github.repository == 'lokesh0186/pre-commit-terraform' && github.ref == 'refs/heads/verification/iacgv-1.0.4-production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      with:
+        persist-credentials: false
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      with:
+        repository: lokesh0186/pre-commit-terraform
+        ref: 9477c6466cdeda62b7ef102508b1ed472347fb8e
+        path: source
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Verify remaining public distribution paths
+      run: bash proof/remaining_replay.sh
+    - name: Retain canonical evidence in downloadable job logs
+      if: always()
+      run: sudo python3 proof/export_evidence.py
